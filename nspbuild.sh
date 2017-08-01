@@ -16,7 +16,7 @@ rootfs_common() {
   sudo tee -a "${nspcontainer}/etc/vconsole.conf" <<< "KEYMAP=${nspkeymap}"
   sudo tee -a "${nspcontainer}/etc/locale.conf" <<< "LANG=${nsplang}"
 
-  if [ -x "${nspcontainer}/etc/locale.gen" ]; then
+  if [ -f "${nspcontainer}/etc/locale.gen" ]; then
     sudo sed -i -e "/^#\s*${nsplang%.*}.*/s/^#\s*//" "${nspcontainer}/etc/locale.gen"
     sudo arch-chroot ${nspcontainer} locale-gen
   fi
