@@ -1,0 +1,3 @@
+[submodule "aurci"]
+	path = aurci
+	url = https://github.com/localnet/aurci.git

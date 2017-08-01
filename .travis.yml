@@ -1,0 +1,60 @@
+services:
+  - docker
+
+jobs:
+  include:
+    - stage: Build packages.
+      env:
+        global:
+          - TRAVIS_TAG=${NSPAWN_TAGS1}
+      before_install:
+        - docker build -t localnet/aurci aurci/.
+        - docker run -d -t --name aurci localnet/aurci bash
+      install:
+        - docker cp aurci/pkgrepository.sh aurci:/home/pkguser
+        - docker cp aurci/pkgbuild.sh aurci:/home/pkguser
+      before_script:
+        - docker cp pkglist aurci:/home/pkguser
+        - docker cp pkgkeys aurci:/home/pkguser
+      script:
+        - docker exec aurci bash pkgrepository.sh ${TRAVIS_REPO_SLUG} ${NSPAWN_TAGS1}
+        - docker exec aurci bash pkgbuild.sh ${TRAVIS_REPO_SLUG} ${TRAVIS_BUILD_ID}
+      before_deploy:
+        - docker cp aurci:/home/pkguser/bin ${TRAVIS_TAG}
+      deploy:
+        provider: releases
+        api_key: ${GITHUB_TOKEN}
+        file_glob: true
+        file: ${TRAVIS_TAG}/*{db,files,gz,xz}
+        overwrite: true
+        skip_cleanup: true
+        on:
+          branch: master
+    - stage: Build container images.
+      env:
+        global:
+          - TRAVIS_TAG=${NSPAWN_TAGS2}
+      before_install:
+        - docker build -t localnet/nspawnci .
+        - docker run -d -t --name nspawnci --privileged localnet/nspawnci bash
+      install:
+        - docker cp nsprepository.sh nspawnci:/home/nspuser
+        - docker cp nspbuild.sh nspawnci:/home/nspuser
+      before_script:
+        - docker cp nsplist nspawnci:/home/nspuser
+      script:
+        - docker exec nspawnci bash nsprepository.sh ${TRAVIS_REPO_SLUG} ${NSPAWN_TAGS1}
+        - docker exec nspawnci bash nspbuild.sh ${NSPAWN_LOCALTIME} ${NSPAWN_KEYMAP} ${NSPAWN_LANG}
+      before_deploy:
+        - docker cp nspawnci:/home/nspuser/tarball ${TRAVIS_TAG}
+      deploy:
+        provider: releases
+        api_key: ${GITHUB_TOKEN}
+        file_glob: true
+        file:
+          - ${TRAVIS_TAG}/*.tar.xz
+          - ${TRAVIS_TAG}/SHA256SUMS
+        overwrite: true
+        skip_cleanup: true
+        on:
+          branch: master
