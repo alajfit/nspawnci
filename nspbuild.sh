@@ -15,10 +15,13 @@ rootfs_common() {
 
   sudo tee -a "${nspcontainer}/etc/vconsole.conf" <<< "KEYMAP=${nspkeymap}"
   sudo tee -a "${nspcontainer}/etc/locale.conf" <<< "LANG=${nsplang}"
-  sudo sed -i -e "/^#\s*${nsplang%.*}.*/s/^#\s*//" "${nspcontainer}/etc/locale.gen"
-  sudo arch-chroot ${nspcontainer} locale-gen
 
-  sudo rm "${nspcontainer}/etc/resolv.conf"
+  if [ -x "${nspcontainer}/etc/locale.gen" ]; then
+    sudo sed -i -e "/^#\s*${nsplang%.*}.*/s/^#\s*//" "${nspcontainer}/etc/locale.gen"
+    sudo arch-chroot ${nspcontainer} locale-gen
+  fi
+
+  sudo rm -f "${nspcontainer}/etc/resolv.conf"
   sudo arch-chroot ${nspcontainer} ln -sf "/run/systemd/resolve/resolv.conf" "/etc/resolv.conf"
   sudo arch-chroot ${nspcontainer} systemctl enable "systemd-networkd" "systemd-resolved"
 }
@@ -45,7 +48,24 @@ rootfs_debian() {
   sudo sed -i -e "\$p" -e "s/deb\.\(.*\)debian\(.*\)-/security.\1\2\//" "${nspcontainer}/etc/apt/sources.list"
   sudo sed -i -e "/.*/s/$/ contrib non-free/" "${nspcontainer}/etc/apt/sources.list"
 
-  sudo sed -i -e "\$a\\\n# machinectl\npts/0" "${nspcontainer}/etc/securetty"
+  echo -e "\n# machinectl\npts/0" | sudo tee -a "${nspcontainer}/etc/securetty"
+
+  rootfs_common
+}
+
+# Build and configure rootfs for Fedora.
+rootfs_fedora() {
+  local release=${nspcontainer#*-}
+
+  curl -L -O -f "http://download.fedoraproject.org/pub/fedora/linux/releases/${release}/Everything/x86_64/os/Packages/f/fedora-repos-${release}-1.noarch.rpm"
+  sudo bsdtar Jxf "fedora-repos-${release}-1.noarch.rpm" -C ${nspcontainer}
+  rm -f "fedora-repos-${release}-1.noarch.rpm"
+
+  sudo ln -sf "$(pwd)/${nspcontainer}/etc/pki" "/etc/pki"
+  sudo dnf -x "NetworkManager" -y --installroot="$(pwd)/${nspcontainer}" --releasever=${release} install @core
+  sudo rm -f "/etc/pki"
+
+  echo -e "# machinectl\npts/0" | sudo tee -a "${nspcontainer}/etc/securetty"
 
   rootfs_common
 }
@@ -54,13 +74,13 @@ rootfs_debian() {
 rootfs_ubuntu() {
   local release=${nspcontainer#*-}
 
-  sudo debootstrap ${release} ${nspcontainer}
+  sudo debootstrap --components="main,universe" ${release} ${nspcontainer}
 
   sudo sed -i -e "\$p" -e "s/${release}/${release}-updates/" "${nspcontainer}/etc/apt/sources.list"
   sudo sed -i -e "\$p" -e "s/updates/security/" "${nspcontainer}/etc/apt/sources.list"
   sudo sed -i -e "/.*/s/$/ restricted universe/" "${nspcontainer}/etc/apt/sources.list"
 
-  sudo sed -i -e "\$a\\\n# machinectl\npts/0" "${nspcontainer}/etc/securetty"
+  echo -e "\n# machinectl\npts/0" | sudo tee -a "${nspcontainer}/etc/securetty"
 
   rootfs_common
 }
@@ -81,6 +101,9 @@ for nspcontainer in ${nsplist[@]}; do
       ;;
     "debian")
       rootfs_debian
+      ;;
+    "fedora")
+      rootfs_fedora
       ;;
     "ubuntu")
       rootfs_ubuntu

@@ -24,4 +24,7 @@ sudo pacman -S --needed --noconfirm arch-install-scripts
 # Install packages for create Debian and Ubuntu containers images.
 sudo pacman -S --noconfirm debian-archive-keyring debootstrap ubuntu-keyring
 
+# Install packages for create Fedora containers images.
+sudo pacman -S --noconfirm dnf
+
 { set +ex; } 2>/dev/null
