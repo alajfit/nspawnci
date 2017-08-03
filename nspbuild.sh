@@ -21,6 +21,8 @@ rootfs_common() {
     sudo arch-chroot ${nspcontainer} locale-gen
   fi
 
+  echo -e "# machinectl\npts/0" | sudo tee -a "${nspcontainer}/etc/securetty"
+
   sudo rm -f "${nspcontainer}/etc/resolv.conf"
   sudo arch-chroot ${nspcontainer} ln -sf "/run/systemd/resolve/resolv.conf" "/etc/resolv.conf"
   sudo arch-chroot ${nspcontainer} systemctl enable "systemd-networkd" "systemd-resolved"
@@ -31,11 +33,11 @@ rootfs_archlinux() {
   sudo pacstrap -M -c -d -i ${nspcontainer} "base" --noconfirm
   sudo arch-chroot ${nspcontainer} pacman -Rscn --noconfirm "linux"
 
-  sudo sed -i -e "/^#.*rackspace.*/s/^#//" "${nspcontainer}/etc/pacman.d/mirrorlist"
-
-  sudo sed -i -e "\$ipts/0\n" "${nspcontainer}/etc/securetty"
+  sudo sed -i -e "\$ p" "${nspcontainer}/etc/securetty"
 
   rootfs_common
+
+  sudo sed -i -e "/^#.*rackspace.*/s/^#//" "${nspcontainer}/etc/pacman.d/mirrorlist"
 }
 
 # Build and configure rootfs for Debian.
@@ -44,13 +46,14 @@ rootfs_debian() {
 
   sudo debootstrap --include="console-setup,dbus,locales" ${release} ${nspcontainer}
 
+  rootfs_common
+
   sudo sed -i -e "\$p" -e "s/${release}/${release}-updates/" "${nspcontainer}/etc/apt/sources.list"
   sudo sed -i -e "\$p" -e "s/deb\.\(.*\)debian\(.*\)-/security.\1\2\//" "${nspcontainer}/etc/apt/sources.list"
   sudo sed -i -e "/.*/s/$/ contrib non-free/" "${nspcontainer}/etc/apt/sources.list"
 
-  echo -e "\n# machinectl\npts/0" | sudo tee -a "${nspcontainer}/etc/securetty"
-
-  rootfs_common
+  sudo arch-chroot ${nspcontainer} apt-get -y update
+  sudo arch-chroot ${nspcontainer} env DEBIAN_FRONTEND="noninteractive" apt-get -y upgrade
 }
 
 # Build and configure rootfs for Fedora.
@@ -65,8 +68,6 @@ rootfs_fedora() {
   sudo dnf -x "NetworkManager" -y --installroot="$(pwd)/${nspcontainer}" --releasever=${release} install @core
   sudo rm -f "/etc/pki"
 
-  echo -e "# machinectl\npts/0" | sudo tee -a "${nspcontainer}/etc/securetty"
-
   rootfs_common
 }
 
@@ -76,13 +77,14 @@ rootfs_ubuntu() {
 
   sudo debootstrap --components="main,universe" ${release} ${nspcontainer}
 
+  rootfs_common
+
   sudo sed -i -e "\$p" -e "s/${release}/${release}-updates/" "${nspcontainer}/etc/apt/sources.list"
   sudo sed -i -e "\$p" -e "s/updates/security/" "${nspcontainer}/etc/apt/sources.list"
   sudo sed -i -e "/.*/s/$/ restricted universe/" "${nspcontainer}/etc/apt/sources.list"
 
-  echo -e "\n# machinectl\npts/0" | sudo tee -a "${nspcontainer}/etc/securetty"
-
-  rootfs_common
+  sudo arch-chroot ${nspcontainer} apt-get -y update
+  sudo arch-chroot ${nspcontainer} env DEBIAN_FRONTEND="noninteractive" apt-get -y upgrade
 }
 
 # Remove comments or blank lines.
