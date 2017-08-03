@@ -52,8 +52,7 @@ jobs:
         api_key: ${GITHUB_TOKEN}
         file_glob: true
         file:
-          - ${TRAVIS_TAG}/*.tar.xz
-          - ${TRAVIS_TAG}/SHA256SUMS
+          - ${TRAVIS_TAG}/*{sha256,xz}
         overwrite: true
         skip_cleanup: true
         on:

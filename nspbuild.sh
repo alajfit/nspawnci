@@ -120,7 +120,9 @@ cd ".."
 
 # Generate tarball sha256sum.
 cd "tarball"
-sha256sum *".tar.xz" > "SHA256SUMS"
+for nsptraball in *".tar.xz"; do
+  sha256sum ${nsptraball} >> "${nsptraball}.sha256"
+done
 cd ".."
 
 { set +ex; } 2>/dev/null
