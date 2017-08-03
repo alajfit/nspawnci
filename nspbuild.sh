@@ -30,8 +30,9 @@ rootfs_common() {
 
 # Build and configure rootfs for Arch Linux.
 rootfs_archlinux() {
-  sudo pacstrap -M -c -d -i ${nspcontainer} "base" --noconfirm
-  sudo arch-chroot ${nspcontainer} pacman -Rscn --noconfirm "linux"
+  local base=$(pacman -Sqg base | sed -e "/^linux$/d" | tr "\n" " ")
+
+  sudo pacstrap -M -c -d -i ${nspcontainer} ${base} --noconfirm
 
   sudo sed -i -e "\$ p" "${nspcontainer}/etc/securetty"
 
