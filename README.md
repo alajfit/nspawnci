@@ -18,7 +18,6 @@ To set root password, after container start:
 machinectl shell root@{image} /bin/bash
 passwd
 exit
-
 ```
 
 **NOTE:** Default configuration to local time and locale of all container is Spanish.
