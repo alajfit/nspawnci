@@ -11,6 +11,8 @@ declare -r nsplang=${3}
 
 # Common configuration for all rootfs.
 rootfs_common() {
+  local password="localnet"
+
   sudo arch-chroot ${nspcontainer} ln -sf "/usr/share/zoneinfo/${nsplocaltime}" "/etc/localtime"
 
   sudo tee -a "${nspcontainer}/etc/vconsole.conf" <<< "KEYMAP=${nspkeymap}"
