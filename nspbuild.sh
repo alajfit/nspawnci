@@ -39,6 +39,8 @@ rootfs_archlinux() {
   rootfs_common
 
   sudo sed -i -e "/^#.*rackspace.*/s/^#//" "${nspcontainer}/etc/pacman.d/mirrorlist"
+
+  sudo arch-chroot ${nspcontainer} pacman -Scc --noconfirm
 }
 
 # Build and configure rootfs for Debian.
@@ -51,10 +53,11 @@ rootfs_debian() {
 
   sudo sed -i -e "\$p" -e "s/${release}/${release}-updates/" "${nspcontainer}/etc/apt/sources.list"
   sudo sed -i -e "\$p" -e "s/deb\.\(.*\)debian\(.*\)-/security.\1\2\//" "${nspcontainer}/etc/apt/sources.list"
-  sudo sed -i -e "/.*/s/$/ contrib non-free/" "${nspcontainer}/etc/apt/sources.list"
+  sudo sed -i -e "/^deb/s/$/ contrib non-free/" "${nspcontainer}/etc/apt/sources.list"
 
   sudo arch-chroot ${nspcontainer} apt-get -y update
   sudo arch-chroot ${nspcontainer} env DEBIAN_FRONTEND="noninteractive" apt-get -y upgrade
+  sudo arch-chroot ${nspcontainer} apt-get -y clean
 }
 
 # Build and configure rootfs for Fedora.
@@ -62,14 +65,16 @@ rootfs_fedora() {
   local release=${nspcontainer#*-}
 
   curl -L -O -f "http://download.fedoraproject.org/pub/fedora/linux/releases/${release}/Everything/x86_64/os/Packages/f/fedora-repos-${release}-1.noarch.rpm"
+
   sudo bsdtar Jxf "fedora-repos-${release}-1.noarch.rpm" -C ${nspcontainer}
-  rm -f "fedora-repos-${release}-1.noarch.rpm"
 
   sudo ln -sf "$(pwd)/${nspcontainer}/etc/pki" "/etc/pki"
   sudo dnf -x "NetworkManager" -y --installroot="$(pwd)/${nspcontainer}" --releasever=${release} install @core
   sudo rm -f "/etc/pki"
 
   rootfs_common
+
+  sudo arch-chroot ${nspcontainer} dnf -y clean all
 }
 
 # Build and configure rootfs for Ubuntu.
@@ -82,10 +87,11 @@ rootfs_ubuntu() {
 
   sudo sed -i -e "\$p" -e "s/${release}/${release}-updates/" "${nspcontainer}/etc/apt/sources.list"
   sudo sed -i -e "\$p" -e "s/updates/security/" "${nspcontainer}/etc/apt/sources.list"
-  sudo sed -i -e "/.*/s/$/ restricted universe/" "${nspcontainer}/etc/apt/sources.list"
+  sudo sed -i -e "/^deb/s/$/ restricted universe/" "${nspcontainer}/etc/apt/sources.list"
 
   sudo arch-chroot ${nspcontainer} apt-get -y update
   sudo arch-chroot ${nspcontainer} env DEBIAN_FRONTEND="noninteractive" apt-get -y upgrade
+  sudo arch-chroot ${nspcontainer} apt-get -y clean
 }
 
 # Remove comments or blank lines.
