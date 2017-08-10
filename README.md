@@ -16,3 +16,23 @@ machinectl login {image}                  # Log in the container.
 ```
 
 **NOTE:** Default configuration to local time and locale of all containers is Spanish.
+
+## Use repository
+
+To use as custom repository in [Arch Linux](https://www.archlinux.org), add to file `/etc/pacman.conf`:
+
+```
+[nspawnci]
+SigLevel = Optional TrustAll
+Server = https://github.com/localnet/nspawnci/releases/download/repository
+```
+
+Then on the command line:
+
+```
+pacman -Sy            # Refresh package database.
+pacman -Sl nspawnci   # Show packages in repository.
+pacman -S {package}   # Install a package.
+```
+
+**NOTE:** List of currently maintained packages can change at any moment.
