@@ -3,7 +3,7 @@ services:
   - docker
 jobs:
   include:
-    - stage: Build packages.
+    - stage: Build repository packages.
       env:
         global:
           - TRAVIS_TAG=${NSPAWN_TAGS1}
@@ -51,8 +51,7 @@ jobs:
         provider: releases
         api_key: ${GITHUB_TOKEN}
         file_glob: true
-        file:
-          - ${TRAVIS_TAG}/*{sha256,xz}
+        file: ${TRAVIS_TAG}/*{sha256,xz}
         overwrite: true
         skip_cleanup: true
         on:
