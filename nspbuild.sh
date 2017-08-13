@@ -23,11 +23,13 @@ rootfs_common() {
     sudo arch-chroot ${nspcontainer} locale-gen
   fi
 
-  echo -e "# machinectl\npts/0" | sudo tee -a "${nspcontainer}/etc/securetty"
+  sudo rm -f "${nspcontainer}/etc/hostname"
 
   sudo rm -f "${nspcontainer}/etc/resolv.conf"
   sudo arch-chroot ${nspcontainer} ln -sf "/run/systemd/resolve/resolv.conf" "/etc/resolv.conf"
   sudo arch-chroot ${nspcontainer} systemctl enable "systemd-networkd" "systemd-resolved"
+
+  echo -e "\n# machinectl\npts/0" | sudo tee -a "${nspcontainer}/etc/securetty"
 }
 
 # Build and configure rootfs for Arch Linux.
@@ -36,7 +38,7 @@ rootfs_archlinux() {
 
   sudo pacstrap -M -c -d -i ${nspcontainer} ${base} --noconfirm
 
-  sudo sed -i -e "\$ p" "${nspcontainer}/etc/securetty"
+  sudo sed -i -n "/# End of file/{n;x;d;};x;1d;p;\${x;p;}" "${nspcontainer}/etc/securetty"
 
   rootfs_common
 
@@ -83,7 +85,7 @@ rootfs_fedora() {
 rootfs_ubuntu() {
   local release=${nspcontainer#*-}
 
-  sudo debootstrap --components="main,universe" ${release} ${nspcontainer}
+  sudo debootstrap --components="main,universe" --include="dbus" ${release} ${nspcontainer}
 
   rootfs_common
 
@@ -121,7 +123,7 @@ for nspcontainer in ${nsplist[@]}; do
       ;;
   esac
   cd ${nspcontainer}
-  sudo bsdtar Jcf "../../tarball/${nspcontainer}.tar.xz" "."
+  sudo tar -Jcf "../../tarball/${nspcontainer}.tar.xz" "."
   cd ".."
 done
 cd ".."
