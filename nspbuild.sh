@@ -69,8 +69,8 @@ rootfs_fedora() {
   local release=${nspcontainer#*-}
 
   curl -L -O -f "http://download.fedoraproject.org/pub/fedora/linux/releases/${release}/Everything/x86_64/os/Packages/f/fedora-repos-${release}-1.noarch.rpm"
-
   sudo bsdtar Jxf "fedora-repos-${release}-1.noarch.rpm" -C ${nspcontainer}
+  rm -f "fedora-repos-${release}-1.noarch.rpm"
 
   sudo ln -fs "$(pwd)/${nspcontainer}/etc/pki" "/etc/pki"
   sudo dnf -x "NetworkManager" -y --installroot="$(pwd)/${nspcontainer}" --releasever=${release} install @core
