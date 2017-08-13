@@ -13,7 +13,7 @@ declare -r nsplang=${3}
 rootfs_common() {
   local password="localnet"
 
-  sudo arch-chroot ${nspcontainer} ln -sf "/usr/share/zoneinfo/${nsplocaltime}" "/etc/localtime"
+  sudo arch-chroot ${nspcontainer} ln -fs "/usr/share/zoneinfo/${nsplocaltime}" "/etc/localtime"
 
   sudo tee -a "${nspcontainer}/etc/vconsole.conf" <<< "KEYMAP=${nspkeymap}"
   sudo tee -a "${nspcontainer}/etc/locale.conf" <<< "LANG=${nsplang}"
@@ -26,7 +26,7 @@ rootfs_common() {
   sudo rm -f "${nspcontainer}/etc/hostname"
 
   sudo rm -f "${nspcontainer}/etc/resolv.conf"
-  sudo arch-chroot ${nspcontainer} ln -sf "/run/systemd/resolve/resolv.conf" "/etc/resolv.conf"
+  sudo arch-chroot ${nspcontainer} ln -fs "/run/systemd/resolve/resolv.conf" "/etc/resolv.conf"
   sudo arch-chroot ${nspcontainer} systemctl enable "systemd-networkd" "systemd-resolved"
 
   echo -e "\n# machinectl\npts/0" | sudo tee -a "${nspcontainer}/etc/securetty"
@@ -36,7 +36,7 @@ rootfs_common() {
 rootfs_archlinux() {
   local base=$(pacman -Sqg base | sed -e "/^linux$/d" | tr "\n" " ")
 
-  sudo pacstrap -M -c -d -i ${nspcontainer} ${base} --noconfirm
+  sudo pacstrap -M -d -i ${nspcontainer} ${base} --noconfirm
 
   sudo sed -i -n "/# End of file/{n;x;d;};x;1d;p;\${x;p;}" "${nspcontainer}/etc/securetty"
 
@@ -72,7 +72,7 @@ rootfs_fedora() {
 
   sudo bsdtar Jxf "fedora-repos-${release}-1.noarch.rpm" -C ${nspcontainer}
 
-  sudo ln -sf "$(pwd)/${nspcontainer}/etc/pki" "/etc/pki"
+  sudo ln -fs "$(pwd)/${nspcontainer}/etc/pki" "/etc/pki"
   sudo dnf -x "NetworkManager" -y --installroot="$(pwd)/${nspcontainer}" --releasever=${release} install @core
   sudo rm -f "/etc/pki"
 
