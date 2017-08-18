@@ -3,11 +3,11 @@
 set -ex
 
 # Variables declaration.
-declare -a nsplist=()
-declare -l nspcontainer=""
 declare -r nsplocaltime=${1}
 declare -r nspkeymap=${2}
 declare -r nsplang=${3}
+declare -a nsplist=()
+declare -l nspcontainer=""
 
 # Common configuration for all rootfs.
 rootfs_common() {
@@ -36,7 +36,7 @@ rootfs_common() {
 rootfs_archlinux() {
   local base=$(pacman -Sqg base | sed -e "/^linux$/d" | tr "\n" " ")
 
-  sudo pacstrap -M -d -i ${nspcontainer} ${base} --noconfirm
+  sudo pacstrap -M -c -d -i ${nspcontainer} ${base} --noconfirm
 
   sudo sed -i -n "/# End of file/{n;x;d;};x;1d;p;\${x;p;}" "${nspcontainer}/etc/securetty"
 
