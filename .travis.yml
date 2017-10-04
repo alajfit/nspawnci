@@ -5,8 +5,7 @@ jobs:
   include:
     - stage: Build repository packages.
       env:
-        global:
-          - TRAVIS_TAG=${NSPAWN_TAGS1}
+        - TRAVIS_TAG=${NSPAWN_TAGS1}
       before_install:
         - docker build -t localnet/aurci aurci/.
         - docker run -d -t --name aurci localnet/aurci bash
@@ -32,8 +31,7 @@ jobs:
           branch: master
     - stage: Build container images.
       env:
-        global:
-          - TRAVIS_TAG=${NSPAWN_TAGS2}
+        - TRAVIS_TAG=${NSPAWN_TAGS2}
       before_install:
         - docker build -t localnet/nspawnci .
         - docker run -d -t --name nspawnci --privileged localnet/nspawnci bash
