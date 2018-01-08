@@ -3,8 +3,8 @@
 set -ex
 
 # Variables declaration.
-declare -r pkgslug="${1}"
-declare -r pkgtag="${2}"
+declare -r pkgslug="$1"
+declare -r pkgtag="$2"
 declare -r pkgrepo="${1#*/}"
 
 # Add repository aurutilsci and incude ${pkgrepo}.
