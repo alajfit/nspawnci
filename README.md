@@ -11,7 +11,7 @@ machinectl pull-tar --verify=checksum https://github.com/localnet/nspawnci/relea
 machinectl start {image}                  # Starts the container.
 machinectl shell root@{image} /bin/bash   # Get a root bash shell.
 passwd                                    # Set root password.
-logout                                    # Log out root bash shell.
+exit                                      # Exit from root bash shell.
 machinectl login {image}                  # Log in the container.
 ```
 
