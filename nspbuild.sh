@@ -84,7 +84,7 @@ rootfs_fedora() {
 rootfs_ubuntu() {
   local release="${nspcontainer#*-}"
 
-  sudo debootstrap --components="main,universe" --include="dbus" $release $nspcontainer
+  sudo debootstrap --components="main,universe" --exclude="rsyslog" --include="dbus" $release $nspcontainer
 
   rootfs_common
 
