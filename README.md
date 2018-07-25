@@ -8,12 +8,12 @@ To use with [machinectl](https://www.freedesktop.org/software/systemd/man/machin
 
 ```
 machinectl pull-tar --verify=checksum https://github.com/localnet/nspawnci/releases/download/container/{image}.tar.xz
+machinectl clean                          # (Optional) Clean cache.
 machinectl start {image}                  # Starts the container.
 machinectl shell root@{image} /bin/bash   # Get a root bash shell.
 passwd                                    # Set root password.
 exit                                      # Exit from root bash shell.
 machinectl login {image}                  # Log in the container.
-machinectl clean                          # (Optional) Clean cache.
 ```
 
 **NOTE:** Default configuration to local time and locale of all containers is Spanish.
